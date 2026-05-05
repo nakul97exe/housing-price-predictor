@@ -36,27 +36,33 @@ def _download_models_if_needed():
         print(f"Blob download error: {e}")
 
 
-_download_models_if_needed()
-
 app = Flask(__name__)
 _cors_origins = [o.strip() for o in os.getenv('CORS_ORIGIN', 'http://localhost:3000').split(',')]
 CORS(app, origins=_cors_origins)
 
-# ── Load model files on startup ───────────────────────────────────────────
-model         = joblib.load(os.getenv('MODEL_PATH',       'california_housing_model.pkl'))
-transformer   = joblib.load(os.getenv('TRANSFORMER_PATH', 'power_transformer.pkl'))
-feature_cols  = joblib.load(os.getenv('FEATURES_PATH',    'feature_columns.pkl'))
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
 
-# ── Load housing data on startup ──────────────────────────────────────────
-housing_json_path = os.getenv('HOUSING_JSON_PATH', 'housing.json')
-with open(housing_json_path, 'r') as f:
-    housing_data = json.load(f)
+# ── Lazy-loaded globals ───────────────────────────────────────────────────
+model        = None
+transformer  = None
+feature_cols = None
+housing_df   = None
 
-housing_df = pd.DataFrame(housing_data)
 
-print("Model loaded ✅")
-print(f"Housing data loaded ✅ — {len(housing_df)} rows")
+def _ensure_models_loaded():
+    global model, transformer, feature_cols, housing_df
+    if model is not None:
+        return
+    _download_models_if_needed()
+    model        = joblib.load(os.getenv('MODEL_PATH',       'california_housing_model.pkl'))
+    transformer  = joblib.load(os.getenv('TRANSFORMER_PATH', 'power_transformer.pkl'))
+    feature_cols = joblib.load(os.getenv('FEATURES_PATH',    'feature_columns.pkl'))
+    housing_json_path = os.getenv('HOUSING_JSON_PATH', 'housing.json')
+    with open(housing_json_path, 'r') as f:
+        housing_data = json.load(f)
+    housing_df = pd.DataFrame(housing_data)
+    print("Model loaded ✅")
+    print(f"Housing data loaded ✅ — {len(housing_df)} rows")
 
 # ── Helper — predict price for one row ────────────────────────────────────
 def predict_price_for_row(row, ocean_proximity):
@@ -138,12 +144,13 @@ def compute_insights_by_zones(filtered_df):
 # ── Health check ──────────────────────────────────────────────────────────
 @app.route('/health', methods=['GET'])
 def health():
-    return jsonify({ "status": "ok", "model": "RandomForestRegressor" })
+    return jsonify({ "status": "ok", "model": "RandomForestRegressor", "models_loaded": model is not None })
 
 
 # ── Chat endpoint ─────────────────────────────────────────────────────────
 @app.route('/chat', methods=['POST'])
 def chat():
+    _ensure_models_loaded()
     try:
         data       = request.get_json()
         user_query = data.get('query', '')
@@ -369,6 +376,7 @@ RULES:
 # ── Predict endpoint ──────────────────────────────────────────────────────
 @app.route('/predict', methods=['POST'])
 def predict():
+    _ensure_models_loaded()
     try:
         data = request.get_json()
 
