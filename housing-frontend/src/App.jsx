@@ -28,7 +28,7 @@ function App() {
 
         <span style={{ fontSize: 18 }}>🏠</span>
         <h1 style={{ fontSize: 14, color: '#60a5fa', margin: 0 }}>
-          CA Housing Predictor2
+          CA Housing Predictor
         </h1>
 
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
