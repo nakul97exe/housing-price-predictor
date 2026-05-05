@@ -1,0 +1,37 @@
+# Environment files — never commit secrets
+.env
+.env.local
+.env.production
+backend/.env
+housing-frontend/.env
+
+# Model files — too large for GitHub (upload to Azure Blob Storage instead)
+*.pkl
+*.joblib
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+env/
+.Python
+*.egg-info/
+dist/
+build/
+*.pyc
+
+# Node / frontend
+node_modules/
+housing-frontend/dist/
+housing-frontend/.vite/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

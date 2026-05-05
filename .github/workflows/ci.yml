@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Syntax check
+        run: python -m py_compile backend/app.py
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: housing-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: housing-frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: housing-frontend
+        run: npm run lint
+
+      - name: Build
+        working-directory: housing-frontend
+        env:
+          VITE_FLASK_API_URL: https://placeholder.azurewebsites.net
+        run: npm run build
