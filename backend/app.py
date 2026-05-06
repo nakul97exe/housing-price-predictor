@@ -150,8 +150,8 @@ def health():
 # ── Chat endpoint ─────────────────────────────────────────────────────────
 @app.route('/chat', methods=['POST'])
 def chat():
-    _ensure_models_loaded()
     try:
+        _ensure_models_loaded()
         data       = request.get_json()
         user_query = data.get('query', '')
 
@@ -376,8 +376,8 @@ RULES:
 # ── Predict endpoint ──────────────────────────────────────────────────────
 @app.route('/predict', methods=['POST'])
 def predict():
-    _ensure_models_loaded()
     try:
+        _ensure_models_loaded()
         data = request.get_json()
 
         longitude          = float(data['longitude'])
