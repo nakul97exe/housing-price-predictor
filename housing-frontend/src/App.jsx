@@ -47,7 +47,7 @@ function App() {
               gap:          6,
             }}
           >
-            <span>💬</span> AI Chat2
+            <span>💬</span> AI Chat
           </button>
 
           {filters && (
